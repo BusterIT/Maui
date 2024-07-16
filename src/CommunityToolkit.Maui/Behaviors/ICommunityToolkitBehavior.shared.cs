@@ -21,20 +21,30 @@ public interface ICommunityToolkitBehavior<TView> where TView : Element
 			throw new InvalidOperationException($"{nameof(ICommunityToolkitBehavior<TView>)} can only be used for a {nameof(Behavior)}");
 		}
 
-		if (behavior.IsSet(BindableObject.BindingContextProperty) || View is null)
+		if (View is null)
 		{
 			return false;
 		}
 
-		behavior.SetBinding(BindableObject.BindingContextProperty, new Binding
+		if (!behavior.IsSet(BindableObject.BindingContextProperty))
 		{
-			Source = View,
-			Path = BindableObject.BindingContextProperty.PropertyName
-		});
+			behavior.SetBinding(BindableObject.BindingContextProperty, new Binding
+			{
+				Source = View,
+				Path = BindableObject.BindingContextProperty.PropertyName
+			});
+			return true;
+		}
 
-		return true;
+		if (!Equals(behavior.BindingContext, View.BindingContext))
+		{
+			behavior.BindingContext = View.BindingContext;
+			return true;
+		}
 
+		return false;
 	}
+
 
 	internal bool TryRemoveBindingContext()
 	{
